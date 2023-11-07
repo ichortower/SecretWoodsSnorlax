@@ -1,0 +1,10 @@
+{
+	"Name": "Secret Woods Snorlax",
+	"Author": "ichortower",
+	"Description": "Replaces the log blocking off the Secret Woods with a Snorlax.",
+	"Version": "1.0.0",
+	"UniqueID": "ichortower.SecretWoodsLax",
+	"EntryDll": "SecretWoodsLax.dll",
+	"MinimumApiVersion": "3.0.0",
+	"UpdateKeys": ["GitHub:ichortower/SecretWoodsLax"]
+}
