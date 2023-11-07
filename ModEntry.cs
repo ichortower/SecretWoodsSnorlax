@@ -13,6 +13,7 @@ namespace ichortower.SecretWoodsSnorlax
         {
             ModEntry.MONITOR = this.Monitor;
             ModEntry.HELPER = helper;
+            helper.Events.GameLoop.GameLaunched += Events.OnGameLaunched;
             helper.Events.GameLoop.SaveLoaded += Events.OnSaveLoaded;
             //helper.Events.Content.AssetRequested += Events.OnAssetRequested;
         }
