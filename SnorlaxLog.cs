@@ -10,13 +10,13 @@ namespace ichortower.SecretWoodsSnorlax
         public static string SpriteSheetName = "Maps\\SecretWoodsSnorlax";
         public static Texture2D SpriteSheet = null!;
 
-        public SnorlaxLog()
+        public SnorlaxLog(float x, float y)
             : base()
         {
             this.width.Value = 3;
             this.height.Value = 3;
             this.parentSheetIndex.Value = 0;
-            this.tile.Value = new Vector2(1f, 6f);
+            this.tile.Value = new Vector2(x, y);
             this.health.Value = 160; // snorlax's base HP stat
             if (SnorlaxLog.SpriteSheet is null) {
                 SnorlaxLog.SpriteSheet = ModEntry.HELPER.ModContent
