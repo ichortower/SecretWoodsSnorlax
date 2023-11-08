@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Tools;
+using System;
 
 namespace ichortower.SecretWoodsSnorlax
 {
@@ -9,6 +10,10 @@ namespace ichortower.SecretWoodsSnorlax
     {
         public static string SpriteSheetName = "Maps\\SecretWoodsSnorlax";
         public static Texture2D SpriteSheet = null!;
+
+        public float yJumpOffset = 0f;
+        public float yJumpVelocity = 0f;
+        public float yJumpGravity = -0.5f;
 
         public SnorlaxLog(float x, float y)
             : base()
@@ -30,12 +35,27 @@ namespace ichortower.SecretWoodsSnorlax
                     SnorlaxLog.SpriteSheet, this.parentSheetIndex.Value,
                     this.width.Value * 16, this.height.Value * 16);
             Vector2 position = this.tile.Value * 64f;
-            // this.shakeTimer goes here if it is used
+            position.Y -= yJumpOffset;
             spriteBatch.Draw(SnorlaxLog.SpriteSheet,
                     Game1.GlobalToLocal(Game1.viewport, position),
                     sourceRect, Color.White, 0f, Vector2.Zero, 4f,
                     SpriteEffects.None,
                     (this.tile.Y + 1f) * 64f / 10000f + this.tile.X / 100000f);
+        }
+
+        public override bool tickUpdate(GameTime time,
+                Vector2 tileLocation, GameLocation location)
+        {
+            if (yJumpVelocity != 0f) {
+                yJumpOffset = Math.Max(0f, yJumpOffset + yJumpVelocity);
+            }
+            if (yJumpOffset > 0f) {
+                yJumpVelocity += yJumpGravity;
+            }
+            else {
+                this.parentSheetIndex.Value = 0;
+            }
+            return base.tickUpdate(time, tileLocation, location);
         }
 
         public override bool performUseAction(Vector2 tileLocation,

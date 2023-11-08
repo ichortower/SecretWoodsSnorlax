@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -6,17 +7,24 @@ using StardewValley;
 using StardewValley.Locations;
 using StardewValley.TerrainFeatures;
 using System.IO;
+using System.Threading;
 
 namespace ichortower.SecretWoodsSnorlax
 {
     internal class Events
     {
         public static string SnorlaxMailId = "SecretWoodsSnorlax_Moved";
+        public static string SnorlaxFluteCueShort = "SecretWoodsSnorlax_fluteshort";
+        public static string SnorlaxFluteCue = "SecretWoodsSnorlax_flutemelody";
+        public static int msPerBeat = 432;
         public static int ForeignFluteId = -1;
         public static JsonAssets.IApi JAApi = null;
 
+
         public static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
+            string path;
+            /* Load the embedded JA content pack */
             JAApi = ModEntry.HELPER.ModRegistry.GetApi<JsonAssets.IApi>(
                     "spacechase0.JsonAssets");
             if (JAApi is null) {
@@ -28,11 +36,22 @@ namespace ichortower.SecretWoodsSnorlax
                         "ichortower to report a bug.", LogLevel.Error);
             }
             else {
-                var path = Path.Combine(ModEntry.HELPER.DirectoryPath,
+                path = Path.Combine(ModEntry.HELPER.DirectoryPath,
                         "assets", "[JA] Foreign Flute");
                 JAApi.LoadAssets(path);
             }
+
+            /* Load the flute musics (sound effects).
+             * They're short, but snarfing an ogg does take time */
+            Thread t = new Thread((ThreadStart)delegate {
+                Ogg.LoadSound(SnorlaxFluteCue, Path.Combine(
+                        ModEntry.HELPER.DirectoryPath, "assets", "melody.ogg"));
+                Ogg.LoadSound(SnorlaxFluteCueShort, Path.Combine(
+                        ModEntry.HELPER.DirectoryPath, "assets", "melody_short.ogg"));
+            });
+            t.Start();
         }
+
 
         /*
          * Spawn the snorlax. If the forest log is already gone, this will skip
@@ -61,7 +80,7 @@ namespace ichortower.SecretWoodsSnorlax
 
         /*
          * We don't want to deal with the serializer here: just restore the
-         * expected vanilla log status. SaveLoaded will put our friend back.
+         * expected vanilla log status. DayStarted will put our friend back.
          * (this should make the mod safer to uninstall)
          */
         public static void OnSaving(object sender, SavingEventArgs e)
@@ -98,40 +117,118 @@ namespace ichortower.SecretWoodsSnorlax
             }
             foreach (var button in e.Pressed) {
                 if (button.IsActionButton()) {
-                    Events.PlayForeignFlute();
+                    Events.PlayFlute(button);
                     break;
                 }
             }
         }
 
-        private static void PlayForeignFlute()
+        private static void PlayFlute(SButton button)
         {
             bool normalGameplay = !Game1.eventUp && !Game1.isFestival() &&
                     !Game1.fadeToBlack && !Game1.player.swimming.Value &&
                     !Game1.player.bathingClothes.Value &&
                     !Game1.player.onBridge.Value &&
+                    Game1.player.CanMove && !Game1.freezeControls &&
                     Game1.player.freezePause <= 0;
             if (!normalGameplay) {
                 return;
             }
+            GameLocation loc = Game1.player.currentLocation;
+            // can't play inside, unless it's your house
+            if (!loc.IsOutdoors && !loc.Name.Equals("FarmHouse")) {
+                string text = ModEntry.HELPER.Translation.Get("flute.dontPlayHere");
+                Game1.showRedMessage(text.Replace("{{p}}", Game1.player.displayName));
+                return;
+            }
             if (Game1.player.currentLocation.Name.Equals("Forest") &&
                     Game1.player.getTileX() <= 6 &&
-                    Game1.player.getTileY() <= 10) {
-                ModEntry.MONITOR.Log("full play cutscene here", LogLevel.Info);
+                    Game1.player.getTileY() <= 10 &&
+                    !Game1.player.mailReceived.Contains(SnorlaxMailId)) {
+                // prevent inspecting snorlax while starting the cutscene
+                ModEntry.HELPER.Input.Suppress(button);
+                WakeUpCutscene();
                 return;
             }
             int nowFacing = Game1.player.FacingDirection;
             Game1.player.faceDirection(2);
-            Game1.player.FarmerSprite.animateOnce(new FarmerSprite.AnimationFrame[3]{
-                new FarmerSprite.AnimationFrame(98, 500, true, false),
-                new FarmerSprite.AnimationFrame(99, 500, true, false),
-                new FarmerSprite.AnimationFrame(100, 500, true, false),
+            Game1.player.FarmerSprite.animateOnce(new FarmerSprite.AnimationFrame[6]{
+                new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(100, 2*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(98, 2*msPerBeat, true, false),
+            }, delegate {
+                Game1.player.faceDirection(nowFacing);
             });
-            Game1.soundBank.PlayCue("horse_flute");
-            Game1.player.freezePause = 1500;
+            loc.playSoundAt(SnorlaxFluteCueShort, Game1.player.getTileLocation());
+            Game1.player.freezePause = 8*msPerBeat;
+        }
+
+        private static void WakeUpCutscene()
+        {
+            Game1.freezeControls = true;
+            Game1.player.CanMove = false;
+            Game1.player.faceDirection(2);
+            Game1.player.onBridge.Value = true;
+            int tally = 0;
+            int beforeSongPause = 1500;
+            int afterSongPause = 1200;
+
+            var snorlax = (Game1.player.currentLocation as Forest).log as SnorlaxLog;
+
+            Game1.player.FarmerSprite.animateOnce(new FarmerSprite.AnimationFrame[14]{
+                new FarmerSprite.AnimationFrame(16, 2*beforeSongPause/3, false, false),
+                new FarmerSprite.AnimationFrame(98, 1*beforeSongPause/3, true, false),
+                new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(100, 2*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(98, 3*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(100, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(100, 4*msPerBeat, true, false),
+            });
+
             DelayedAction.functionAfterDelay(delegate {
-                    Game1.player.faceDirection(nowFacing);
-            }, 1500);
+                Game1.player.currentLocation.playSoundAt(SnorlaxFluteCue,
+                        Game1.player.getTileLocation());
+            }, (tally += beforeSongPause));
+
+            DelayedAction.functionAfterDelay(delegate {
+                Game1.player.faceGeneralDirection(new Vector2(2f, 7f), 0,
+                        false, false);
+            }, (tally += 18*msPerBeat));
+
+            DelayedAction.functionAfterDelay(delegate {
+                //Game1.player.currentLocation.playSoundPitched("bob", 100);
+                        //new Vector2(2f, 7f));
+                snorlax.parentSheetIndex.Value = 1;
+                Game1.player.doEmote(16);
+                Game1.player.setRunning(true);
+                Game1.player.controller = new PathFindController(Game1.player,
+                        Game1.player.currentLocation, new Point(5, 10), 0,
+                        delegate {
+                            Game1.player.faceGeneralDirection(
+                                    new Vector2(2f, 7f), 0, false, false);
+                        });
+            }, (tally += afterSongPause));
+
+            DelayedAction.functionAfterDelay(delegate {
+                snorlax.parentSheetIndex.Value = 2;
+                snorlax.yJumpVelocity = 16f;
+            }, (tally += 2400));
+
+            DelayedAction.functionAfterDelay(delegate {
+                Game1.freezeControls = false;
+                Game1.player.CanMove = true;
+                Game1.player.onBridge.Value = false;
+            }, (tally += 1000));
         }
     }
 }
