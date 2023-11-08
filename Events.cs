@@ -177,6 +177,7 @@ namespace ichortower.SecretWoodsSnorlax
             int afterSongPause = 1200;
 
             var snorlax = (Game1.player.currentLocation as Forest).log as SnorlaxLog;
+            var snorloc = new Vector2(2f, 7f);
 
             Game1.player.FarmerSprite.animateOnce(new FarmerSprite.AnimationFrame[14]{
                 new FarmerSprite.AnimationFrame(16, 2*beforeSongPause/3, false, false),
@@ -194,16 +195,16 @@ namespace ichortower.SecretWoodsSnorlax
                 new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
                 new FarmerSprite.AnimationFrame(100, 4*msPerBeat, true, false),
             });
-
             DelayedAction.functionAfterDelay(delegate {
                 Game1.player.currentLocation.playSoundAt(SnorlaxFluteCue,
                         Game1.player.getTileLocation());
-            }, (tally += beforeSongPause));
+            }, beforeSongPause);
+            tally += beforeSongPause + 18*msPerBeat;
 
             DelayedAction.functionAfterDelay(delegate {
-                Game1.player.faceGeneralDirection(new Vector2(2f, 7f), 0,
-                        false, false);
-            }, (tally += 18*msPerBeat));
+                Game1.player.faceGeneralDirection(snorloc * 64f, 0, false, true);
+            }, tally);
+            tally += afterSongPause;
 
             DelayedAction.functionAfterDelay(delegate {
                 //Game1.player.currentLocation.playSoundPitched("bob", 100);
@@ -215,20 +216,23 @@ namespace ichortower.SecretWoodsSnorlax
                         Game1.player.currentLocation, new Point(5, 10), 0,
                         delegate {
                             Game1.player.faceGeneralDirection(
-                                    new Vector2(2f, 7f), 0, false, false);
+                                    snorloc * 64f, 0, false, true);
                         });
-            }, (tally += afterSongPause));
+            }, tally);
+            tally += 2400;
 
             DelayedAction.functionAfterDelay(delegate {
                 snorlax.parentSheetIndex.Value = 2;
-                snorlax.yJumpVelocity = 16f;
-            }, (tally += 2400));
+                snorlax.yJumpVelocity = 14f;
+                Game1.player.currentLocation.playSoundAt("dwop", snorloc);
+            }, tally);
+            tally += 1000;
 
             DelayedAction.functionAfterDelay(delegate {
                 Game1.freezeControls = false;
                 Game1.player.CanMove = true;
                 Game1.player.onBridge.Value = false;
-            }, (tally += 1000));
+            }, tally);
         }
     }
 }

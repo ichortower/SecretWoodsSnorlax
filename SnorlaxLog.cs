@@ -46,14 +46,17 @@ namespace ichortower.SecretWoodsSnorlax
         public override bool tickUpdate(GameTime time,
                 Vector2 tileLocation, GameLocation location)
         {
+            float prevOffset = yJumpOffset;
             if (yJumpVelocity != 0f) {
                 yJumpOffset = Math.Max(0f, yJumpOffset + yJumpVelocity);
             }
             if (yJumpOffset > 0f) {
                 yJumpVelocity += yJumpGravity;
             }
-            else {
+            if (prevOffset > 0f && yJumpOffset == 0f) {
                 this.parentSheetIndex.Value = 0;
+                location.playSoundAt("clubSmash", this.tile.Value);
+                location.playSoundAt("treethud", this.tile.Value);
             }
             return base.tickUpdate(time, tileLocation, location);
         }
