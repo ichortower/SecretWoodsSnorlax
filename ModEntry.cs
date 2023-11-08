@@ -16,6 +16,7 @@ namespace ichortower.SecretWoodsSnorlax
             helper.Events.GameLoop.GameLaunched += Events.OnGameLaunched;
             helper.Events.GameLoop.DayStarted += Events.OnDayStarted;
             helper.Events.GameLoop.Saving += Events.OnSaving;
+            helper.Events.Input.ButtonsChanged += Events.OnButtonsChanged;
             //helper.Events.Content.AssetRequested += Events.OnAssetRequested;
         }
     }
