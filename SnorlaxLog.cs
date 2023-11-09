@@ -14,6 +14,7 @@ namespace ichortower.SecretWoodsSnorlax
         public float yJumpOffset = 0f;
         public float yJumpVelocity = 0f;
         public float yJumpGravity = -0.5f;
+        public int jumpTicks = -1;
 
         public SnorlaxLog(float x, float y)
             : base()
@@ -29,6 +30,25 @@ namespace ichortower.SecretWoodsSnorlax
             }
         }
 
+        /*
+         * The jump is firmcoded. This just sets the values, and draw and
+         * tickUpdate actually handle it.
+         */
+        public void JumpAside()
+        {
+            this.parentSheetIndex.Value = 2;
+            this.yJumpVelocity = 16;
+            this.jumpTicks = 0;
+        }
+
+        public bool HasMoved()
+        {
+            if (Game1.player.mailReceived.Contains(Events.SnorlaxMailId)) {
+                return true;
+            }
+            return this.tile.Value.X > 1f;
+        }
+
         public override void draw(SpriteBatch spriteBatch, Vector2 tileLocation)
         {
             Rectangle sourceRect = Game1.getSourceRectForStandardTileSheet(
@@ -36,6 +56,10 @@ namespace ichortower.SecretWoodsSnorlax
                     this.width.Value * 16, this.height.Value * 16);
             Vector2 position = this.tile.Value * 64f;
             position.Y -= yJumpOffset;
+            if (jumpTicks > 0) {
+                position.X += 2 * jumpTicks;
+                position.Y -= 2 * jumpTicks;
+            }
             spriteBatch.Draw(SnorlaxLog.SpriteSheet,
                     Game1.GlobalToLocal(Game1.viewport, position),
                     sourceRect, Color.White, 0f, Vector2.Zero, 4f,
@@ -46,6 +70,9 @@ namespace ichortower.SecretWoodsSnorlax
         public override bool tickUpdate(GameTime time,
                 Vector2 tileLocation, GameLocation location)
         {
+            if (jumpTicks >= 0) {
+                ++jumpTicks;
+            }
             float prevOffset = yJumpOffset;
             if (yJumpVelocity != 0f) {
                 yJumpOffset = Math.Max(0f, yJumpOffset + yJumpVelocity);
@@ -55,6 +82,8 @@ namespace ichortower.SecretWoodsSnorlax
             }
             if (prevOffset > 0f && yJumpOffset == 0f) {
                 this.parentSheetIndex.Value = 0;
+                this.jumpTicks = -1;
+                this.tile.Value = new Vector2(3f, 4f);
                 location.playSoundAt("clubSmash", this.tile.Value);
                 location.playSoundAt("treethud", this.tile.Value);
             }
@@ -68,8 +97,9 @@ namespace ichortower.SecretWoodsSnorlax
                 Game1.haltAfterCheck = false;
                 return false;
             }
-            var str = ModEntry.HELPER.Translation.Get("inspectMessage");
-            Game1.drawObjectDialogue(Game1.parseText(str));
+            string key = HasMoved() ? "inspect.moved" : "inspect.unmoved";
+            string text = ModEntry.HELPER.Translation.Get(key);
+            Game1.drawObjectDialogue(Game1.parseText(text));
             return true;
         }
 
@@ -79,17 +109,19 @@ namespace ichortower.SecretWoodsSnorlax
             if (t is null) {
                 return false;
             }
-            if (t is Axe) {
-                location.playSound("axe");
-                Game1.player.jitterStrength = 1f;
-                var str = ModEntry.HELPER.Translation.Get("axeNoEffect");
-                Game1.drawObjectDialogue(str);
-            }
-            else if (t is Pickaxe) {
-                location.playSound("hammer");
-                Game1.player.jitterStrength = 1f;
-                var str = ModEntry.HELPER.Translation.Get("pickaxeNoEffect");
-                Game1.drawObjectDialogue(str);
+            if (!HasMoved()) {
+                if (t is Axe) {
+                    location.playSound("woodyHit");
+                    Game1.player.jitterStrength = 1f;
+                    var str = ModEntry.HELPER.Translation.Get("tool.noEffect");
+                    Game1.drawObjectDialogue(str);
+                }
+                else if (t is Pickaxe) {
+                    location.playSound("woodyHit");
+                    Game1.player.jitterStrength = 1f;
+                    var str = ModEntry.HELPER.Translation.Get("tool.noEffect");
+                    Game1.drawObjectDialogue(str);
+                }
             }
             return false;
         }

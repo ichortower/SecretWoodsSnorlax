@@ -1,7 +1,7 @@
 {
-    "inspectMessage": "An enormous creature is sleeping here.",
-    "axeNoEffect": "No effect. Maybe something else can wake it up...?",
-    "pickaxeNoEffect": "It doesn't seem to notice. Maybe something else can wake it up...?",
+    "inspect.unmoved": "An enormous creature is sleeping here.",
+    "inspect.moved": "He's sleeping peacefully.",
+    "tool.noEffect": "No effect. He doesn't seem to notice.",
     "flute.dontPlayHere": "OAK: {{p}}! This isn't the time to use that!",
     "EOF": ""
 }
