@@ -1,10 +1,10 @@
 {
-    "Name": "Foreign Flute",
+    "Name": "Strange Flute",
     "Category": "Crafting",
     "Edibility": -300,
     "Price": 0,
     "CanSell": false,
     "CanTrash": false,
     "CanBeGifted": false,
-    "TranslationKey": "object.foreignflute"
+    "TranslationKey": "object.strangeflute"
 }
