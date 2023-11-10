@@ -7,6 +7,7 @@ using StardewValley;
 using StardewValley.Locations;
 using StardewValley.TerrainFeatures;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 
 namespace ichortower.SecretWoodsSnorlax
@@ -29,12 +30,12 @@ namespace ichortower.SecretWoodsSnorlax
             JAApi = ModEntry.HELPER.ModRegistry.GetApi<JsonAssets.IApi>(
                     "spacechase0.JsonAssets");
             if (JAApi is null) {
-                ModEntry.MONITOR.Log("Could not load the Json Assets API, so the " +
-                        "flute object could not be registered. You will not be able " +
-                        "to wake the Snorlax!", LogLevel.Error);
-                ModEntry.MONITOR.Log("This shouldn't be possible, so this mod is " +
-                        "probably broken. Please try updating it, or contacting " +
-                        "ichortower to report a bug.", LogLevel.Error);
+                ModEntry.MONITOR.Log("CRITICAL: could not load the Json " +
+                        "Assets API. This shouldn't be possible, so this mod " +
+                        "install is probably broken.", LogLevel.Error);
+                ModEntry.MONITOR.Log("Please try reinstalling, updating (if " +
+                        "available), or complaining to ichortower about it.",
+                        LogLevel.Error);
             }
             else {
                 path = Path.Combine(ModEntry.HELPER.DirectoryPath,
@@ -51,6 +52,47 @@ namespace ichortower.SecretWoodsSnorlax
                         ModEntry.HELPER.DirectoryPath, "assets", "melody_short.ogg"));
             });
             t.Start();
+
+            /* Set up event commands for the wizard event */
+            var SCApi = ModEntry.HELPER.ModRegistry.GetApi<SpaceCore.IApi>(
+                    "spacechase0.SpaceCore");
+            if (SCApi is null) {
+                ModEntry.MONITOR.Log("CRITICAL: could not load the SpaceCore " +
+                        "API. This shouldn't be possible, so this mod " +
+                        "install is probably broken.", LogLevel.Error);
+                ModEntry.MONITOR.Log("Please try reinstalling, updating (if " +
+                        "available), or complaining to ichortower about it.",
+                        LogLevel.Error);
+            }
+            else {
+                MethodInfo giveKeyMethod = typeof(Events).GetMethod(
+                        "command_giveKey", BindingFlags.Static | BindingFlags.Public);
+                MethodInfo holdKeyMethod = typeof(Events).GetMethod(
+                        "command_holdKey", BindingFlags.Static | BindingFlags.Public);
+                SCApi.AddEventCommand("SWS_giveKey", giveKeyMethod);
+                SCApi.AddEventCommand("SWS_holdKey", holdKeyMethod);
+            }
+        }
+
+        public static void command_giveKey(Event e, GameLocation location,
+                GameTime time, string[] split)
+        {
+            if (FluteId == -1) {
+                FluteId = JAApi.GetObjectId(FluteName);
+            }
+            Object flute = new Object(Vector2.Zero, FluteId, 1);
+            e.farmer.addItemByMenuIfNecessary(flute);
+            e.CurrentCommand++;
+        }
+
+        public static void command_holdKey(Event e, GameLocation location,
+                GameTime time, string[] split)
+        {
+            if (FluteId == -1) {
+                FluteId = JAApi.GetObjectId(FluteName);
+            }
+            e.farmer.holdUpItemThenMessage(new Object(Vector2.Zero, FluteId, 1));
+            e.CurrentCommand++;
         }
 
 
@@ -141,7 +183,7 @@ namespace ichortower.SecretWoodsSnorlax
             // can't play inside, unless it's your house
             if (!loc.IsOutdoors && !loc.Name.Equals("FarmHouse")) {
                 string text = ModEntry.HELPER.Translation.Get("flute.dontPlayHere");
-                Game1.showRedMessage(text.Replace("{{p}}", Game1.player.displayName));
+                Game1.drawObjectDialogue(text.Replace("{{p}}", Game1.player.displayName));
                 return;
             }
             if (Game1.player.currentLocation.Name.Equals("Forest") &&
