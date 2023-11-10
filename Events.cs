@@ -368,5 +368,29 @@ namespace ichortower.SecretWoodsSnorlax
                 Game1.player.onBridge.Value = false;
             }, tally);
         }
+
+        public static void OnAssetRequested(object sender, AssetRequestedEventArgs e)
+        {
+            /* tricky cheat here, splitting on '/'. through SMAPI, the asset
+             * names passed to this function are already normalized */
+            if (e.NameWithoutLocale.IsDirectlyUnderPath("Characters/Dialogue")) {
+                string npcName = e.NameWithoutLocale.BaseName.Split("/")[2];
+                for (int i = 1; i <= 3; ++i) {
+                    var hintline = ModEntry.HELPER.Translation.Get(
+                            $"hint.{i}.{npcName}");
+                    string key = $"{Constants.ct_Prefix}{i}";
+                    if (hintline.HasValue()) {
+                        e.Edit(asset => {
+                            var dict = asset.AsDictionary<string, string>();
+                            dict.Data[key] = hintline.ToString();
+                        });
+                    }
+                }
+            }
+            else if (e.NameWithoutLocale.IsEquivalentTo("Data/Events/WizardHouse")) {
+            }
+            else if (e.NameWithoutLocale.IsEquivalentTo("Data/Events/Farm")) {
+            }
+        }
     }
 }
