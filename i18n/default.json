@@ -1,7 +1,10 @@
 {
     "inspect.unmoved": "An enormous creature is sleeping here.",
     "inspect.moved": "He's sleeping peacefully.",
-    "tool.noEffect": "No effect. He doesn't seem to notice.",
+    "tool.noEffect.0": "No effect.",
+    "tool.noEffect.1": "He doesn't seem to notice.",
+    "tool.noEffect.2": "It's not very effective...",
+    "tool.noEffect.3": "Maybe some other item would work?",
     "flute.dontPlayHere": "OAK: {{p}}! This isn't the time to use that!",
     "EOF": ""
 }

@@ -14,15 +14,9 @@ namespace ichortower.SecretWoodsSnorlax
 {
     internal class Events
     {
-        public static string SnorlaxMailId = "SecretWoodsSnorlax_Moved";
-        public static string SnorlaxFluteCueShort = "SecretWoodsSnorlax_fluteshort";
-        public static string SnorlaxFluteCue = "SecretWoodsSnorlax_flutemelody";
-        public static int msPerBeat = 432;
-        public static string FluteName = "Strange Flute";
         public static int FluteId = -1;
         public static bool FluteHeardToday = false;
         public static JsonAssets.IApi JAApi = null;
-
 
         public static void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
@@ -46,9 +40,9 @@ namespace ichortower.SecretWoodsSnorlax
             /* Load the flute musics (sound effects).
              * They're short, but snarfing an ogg does take time */
             Thread t = new Thread((ThreadStart)delegate {
-                Ogg.LoadSound(SnorlaxFluteCue, Path.Combine(
+                Ogg.LoadSound(Constants.name_FluteCue, Path.Combine(
                         ModEntry.HELPER.DirectoryPath, "assets", "melody.ogg"));
-                Ogg.LoadSound(SnorlaxFluteCueShort, Path.Combine(
+                Ogg.LoadSound(Constants.name_FluteCueShort, Path.Combine(
                         ModEntry.HELPER.DirectoryPath, "assets", "melody_short.ogg"));
             });
             t.Start();
@@ -74,12 +68,17 @@ namespace ichortower.SecretWoodsSnorlax
             }
         }
 
+        public static void getFluteId()
+        {
+            if (FluteId == -1) {
+                FluteId = JAApi.GetObjectId(Constants.name_Flute);
+            }
+        }
+
         public static void command_giveKey(Event e, GameLocation location,
                 GameTime time, string[] split)
         {
-            if (FluteId == -1) {
-                FluteId = JAApi.GetObjectId(FluteName);
-            }
+            getFluteId();
             Object flute = new Object(Vector2.Zero, FluteId, 1);
             e.farmer.addItemByMenuIfNecessary(flute);
             e.CurrentCommand++;
@@ -88,9 +87,7 @@ namespace ichortower.SecretWoodsSnorlax
         public static void command_holdKey(Event e, GameLocation location,
                 GameTime time, string[] split)
         {
-            if (FluteId == -1) {
-                FluteId = JAApi.GetObjectId(FluteName);
-            }
+            getFluteId();
             e.farmer.holdUpItemThenMessage(new Object(Vector2.Zero, FluteId, 1));
             e.CurrentCommand++;
         }
@@ -103,24 +100,19 @@ namespace ichortower.SecretWoodsSnorlax
              * in the moved location and flag it. Otherwise, replace the log.
              */
             Forest forest = (Forest)Game1.getLocationFromName("Forest");
-            if (Game1.player.mailReceived.Contains(SnorlaxMailId)) {
+            if (Game1.player.mailReceived.Contains(Constants.mail_SnorlaxMoved)) {
                 forest.log = new SnorlaxLog(3f, 4f);
                 return;
             }
             if (forest.log is null) {
                 forest.log = new SnorlaxLog(3f, 4f);
-                Game1.player.mailReceived.Add(SnorlaxMailId);
+                Game1.player.mailReceived.Add(Constants.mail_SnorlaxMoved);
             }
             else {
                 forest.log = new SnorlaxLog(1f, 6f);
             }
 
-            /* try to get the flute id (also occurs when needed) */
-            if (FluteId == -1) {
-                FluteId = JAApi.GetObjectId(FluteName);
-            }
-
-            /* clear the once-per-day flag for the longer play cutscenes */
+            getFluteId();
             FluteHeardToday = false;
         }
 
@@ -132,7 +124,7 @@ namespace ichortower.SecretWoodsSnorlax
              */
             Forest forest = (Forest)Game1.getLocationFromName("Forest");
             // check the mail id first; fall back to current location
-            if (Game1.player.hasOrWillReceiveMail(SnorlaxMailId)) {
+            if (Game1.player.mailReceived.Contains(Constants.mail_SnorlaxMoved)) {
                 forest.log = null;
                 return;
             }
@@ -153,9 +145,7 @@ namespace ichortower.SecretWoodsSnorlax
          */
         public static void OnButtonsChanged(object sender, ButtonsChangedEventArgs e)
         {
-            if (FluteId == -1) {
-                FluteId = JAApi.GetObjectId(FluteName);
-            }
+            getFluteId();
             if (Game1.player.ActiveObject is null || Game1.player.ActiveObject
                     .ParentSheetIndex != FluteId) {
                 return;
@@ -189,8 +179,9 @@ namespace ichortower.SecretWoodsSnorlax
             if (Game1.player.currentLocation.Name.Equals("Forest") &&
                     Game1.player.getTileX() <= 6 &&
                     Game1.player.getTileY() <= 10) {
-                // prevent inspecting snorlax while starting these cutscenes
-                if (!Game1.player.mailReceived.Contains(SnorlaxMailId)) {
+                // suppressing input prevents inspecting snorlax while
+                // starting these cutscenes
+                if (!Game1.player.mailReceived.Contains(Constants.mail_SnorlaxMoved)) {
                     ModEntry.HELPER.Input.Suppress(button);
                     WakeUpCutscene();
                     return;
@@ -202,6 +193,7 @@ namespace ichortower.SecretWoodsSnorlax
                 }
             }
             int nowFacing = Game1.player.FacingDirection;
+            int msPerBeat = Constants.msPerBeat;
             Game1.player.faceDirection(2);
             Game1.player.FarmerSprite.animateOnce(new FarmerSprite.AnimationFrame[6]{
                 new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
@@ -213,7 +205,7 @@ namespace ichortower.SecretWoodsSnorlax
             }, delegate {
                 Game1.player.faceDirection(nowFacing);
             });
-            loc.playSoundAt(SnorlaxFluteCueShort, Game1.player.getTileLocation());
+            loc.playSoundAt(Constants.name_FluteCueShort, Game1.player.getTileLocation());
             Game1.player.freezePause = 8*msPerBeat;
         }
 
@@ -226,6 +218,7 @@ namespace ichortower.SecretWoodsSnorlax
             int tally = 0;
             int beforeSongPause = 1500;
             int afterSongPause = 1200;
+            int msPerBeat = Constants.msPerBeat;
 
             var snorlax = (Game1.player.currentLocation as Forest).log as SnorlaxLog;
             var startloc = new Vector2(2f, 7f);
@@ -248,7 +241,7 @@ namespace ichortower.SecretWoodsSnorlax
                 new FarmerSprite.AnimationFrame(100, 4*msPerBeat, true, false),
             });
             DelayedAction.functionAfterDelay(delegate {
-                Game1.player.currentLocation.playSoundAt(SnorlaxFluteCue,
+                Game1.player.currentLocation.playSoundAt(Constants.name_FluteCue,
                         Game1.player.getTileLocation());
             }, beforeSongPause);
             tally += beforeSongPause + 18*msPerBeat;
@@ -259,6 +252,7 @@ namespace ichortower.SecretWoodsSnorlax
             tally += afterSongPause;
 
             DelayedAction.functionAfterDelay(delegate {
+                Game1.player.currentLocation.playSoundAt("sandyStep", startloc);
                 Game1.player.currentLocation.playSoundAt("croak", startloc);
                 snorlax.parentSheetIndex.Value = 1;
                 Game1.player.doEmote(16);
@@ -280,7 +274,8 @@ namespace ichortower.SecretWoodsSnorlax
 
             DelayedAction.functionAfterDelay(delegate {
                 Game1.player.currentLocation.playSoundAt("secret1", endloc);
-                Game1.player.mailReceived.Add(SnorlaxMailId);
+                Game1.player.mailReceived.Add(Constants.mail_SnorlaxMoved);
+                FluteHeardToday = true;
             }, tally);
             tally += 2000;
 
@@ -291,8 +286,87 @@ namespace ichortower.SecretWoodsSnorlax
             }, tally);
         }
 
+        private static void heartSprite(Vector2 tileP)
+        {
+            var heart = new TemporaryAnimatedSprite("LooseSprites\\Cursors",
+                    new Microsoft.Xna.Framework.Rectangle(211, 428, 7, 6),
+                    2000f, 1, 0,
+                    tileP * 64f + new Vector2(48f, -32f),
+                    false, false, 1f, 0f, Color.White, 4f, 0f, 0f, 0f){
+                        motion = new Vector2(0f, -0.5f),
+                        alphaFade = 0.01f
+                    };
+            Game1.player.currentLocation.TemporarySprites.Add(heart);
+            Game1.player.currentLocation.playSoundAt("dwop", tileP);
+        }
+
+        // bunch of copy-paste from WakeUpCutscene.
+        // less work than adding logic to the other one.
         private static void RelistenCutscene()
         {
+            Game1.freezeControls = true;
+            Game1.player.CanMove = false;
+            Game1.player.faceDirection(2);
+            Game1.player.onBridge.Value = true;
+            int tally = 0;
+            int beforeSongPause = 1500;
+            int afterSongPause = 1200;
+            int msPerBeat = Constants.msPerBeat;
+
+            var snorlax = (Game1.player.currentLocation as Forest).log as SnorlaxLog;
+            var soundloc = new Vector2(4f, 5f);
+
+            Game1.player.FarmerSprite.animateOnce(new FarmerSprite.AnimationFrame[14]{
+                new FarmerSprite.AnimationFrame(16, 2*beforeSongPause/3, false, false),
+                new FarmerSprite.AnimationFrame(98, 1*beforeSongPause/3, true, false),
+                new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(100, 2*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(98, 3*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(100, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(98, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(99, 1*msPerBeat, true, false),
+                new FarmerSprite.AnimationFrame(100, 4*msPerBeat, true, false),
+            });
+            DelayedAction.functionAfterDelay(delegate {
+                Game1.player.currentLocation.playSoundAt(Constants.name_FluteCue,
+                        Game1.player.getTileLocation());
+            }, beforeSongPause);
+
+            DelayedAction.functionAfterDelay(delegate {
+                snorlax.parentSheetIndex.Value = 1;
+            }, beforeSongPause + 1000);
+            DelayedAction.functionAfterDelay(delegate {
+                heartSprite(soundloc);
+            }, beforeSongPause + 2000);
+            tally += beforeSongPause + 18*msPerBeat;
+
+            DelayedAction.functionAfterDelay(delegate {
+                Game1.player.faceGeneralDirection(soundloc * 64f, 0, false, true);
+            }, tally);
+            tally += afterSongPause;
+
+            DelayedAction.functionAfterDelay(delegate {
+                snorlax.JumpInPlace();
+                Game1.player.currentLocation.playSoundAt("dwoop", soundloc);
+            }, tally);
+            tally += 1000;
+
+            DelayedAction.functionAfterDelay(delegate {
+                heartSprite(soundloc);
+            }, tally);
+            tally += 500;
+
+            DelayedAction.functionAfterDelay(delegate {
+                FluteHeardToday = true;
+                Game1.freezeControls = false;
+                Game1.player.CanMove = true;
+                Game1.player.onBridge.Value = false;
+            }, tally);
         }
     }
 }

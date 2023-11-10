@@ -15,6 +15,7 @@ namespace ichortower.SecretWoodsSnorlax
         public float yJumpVelocity = 0f;
         public float yJumpGravity = -0.5f;
         public int jumpTicks = -1;
+        public int jumpRepositionSpeed = 0;
 
         public SnorlaxLog(float x, float y)
             : base()
@@ -39,11 +40,20 @@ namespace ichortower.SecretWoodsSnorlax
             this.parentSheetIndex.Value = 2;
             this.yJumpVelocity = 16;
             this.jumpTicks = 0;
+            this.jumpRepositionSpeed = 2;
+        }
+
+        public void JumpInPlace()
+        {
+            this.parentSheetIndex.Value = 2;
+            this.yJumpVelocity = 8;
+            this.jumpTicks = 0;
+            this.jumpRepositionSpeed = 0;
         }
 
         public bool HasMoved()
         {
-            if (Game1.player.mailReceived.Contains(Events.SnorlaxMailId)) {
+            if (Game1.player.mailReceived.Contains(Constants.mail_SnorlaxMoved)) {
                 return true;
             }
             return this.tile.Value.X > 1f;
@@ -57,8 +67,8 @@ namespace ichortower.SecretWoodsSnorlax
             Vector2 position = this.tile.Value * 64f;
             position.Y -= yJumpOffset;
             if (jumpTicks > 0) {
-                position.X += 2 * jumpTicks;
-                position.Y -= 2 * jumpTicks;
+                position.X += jumpRepositionSpeed * jumpTicks;
+                position.Y -= jumpRepositionSpeed * jumpTicks;
             }
             spriteBatch.Draw(SnorlaxLog.SpriteSheet,
                     Game1.GlobalToLocal(Game1.viewport, position),
@@ -110,16 +120,16 @@ namespace ichortower.SecretWoodsSnorlax
                 return false;
             }
             if (!HasMoved()) {
+                string key = $"tool.noEffect.{Game1.random.Next(0,4)}";
+                string str = ModEntry.HELPER.Translation.Get(key);
                 if (t is Axe) {
                     location.playSound("woodyHit");
                     Game1.player.jitterStrength = 1f;
-                    var str = ModEntry.HELPER.Translation.Get("tool.noEffect");
                     Game1.drawObjectDialogue(str);
                 }
                 else if (t is Pickaxe) {
                     location.playSound("woodyHit");
                     Game1.player.jitterStrength = 1f;
-                    var str = ModEntry.HELPER.Translation.Get("tool.noEffect");
                     Game1.drawObjectDialogue(str);
                 }
             }
