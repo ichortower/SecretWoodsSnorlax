@@ -110,6 +110,7 @@ namespace ichortower.SecretWoodsSnorlax
             string key = HasMoved() ? "inspect.moved" : "inspect.unmoved";
             string text = ModEntry.HELPER.Translation.Get(key);
             Game1.drawObjectDialogue(Game1.parseText(text));
+            enableHints();
             return true;
         }
 
@@ -126,14 +127,24 @@ namespace ichortower.SecretWoodsSnorlax
                     location.playSound("woodyHit");
                     Game1.player.jitterStrength = 1f;
                     Game1.drawObjectDialogue(str);
+                    enableHints();
                 }
                 else if (t is Pickaxe) {
                     location.playSound("woodyHit");
                     Game1.player.jitterStrength = 1f;
                     Game1.drawObjectDialogue(str);
+                    enableHints();
                 }
             }
             return false;
+        }
+
+        private void enableHints()
+        {
+            // no letter, send to everyone. all players will get their own
+            // CTs, so they can work together getting hints.
+            // (only the main player can get the flute event)
+            Game1.addMailForTomorrow(Constants.mail_SnorlaxHints, true, true);
         }
     }
 

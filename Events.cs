@@ -387,9 +387,33 @@ namespace ichortower.SecretWoodsSnorlax
                     }
                 }
             }
+
+            /*
+             * add the wizard events:
+             *   one for the main farmer, to get the flute
+             *   one for farmhands, telling them to send the main farmer
+             *   one for main farmers who already moved snorlax (old save)
+             */
             else if (e.NameWithoutLocale.IsEquivalentTo("Data/Events/WizardHouse")) {
             }
+
+            /* add the empty farm events that set the CTs when the hints mail
+             * is active */
             else if (e.NameWithoutLocale.IsEquivalentTo("Data/Events/Farm")) {
+                e.Edit(asset => {
+                    var dict = asset.AsDictionary<string, string>();
+                    for (int i = 1; i <= 3; ++i) {
+                        string key = $"19112010{i}/n {Constants.mail_SnorlaxHints}";
+                        if (i > 1) {
+                            key += $"/e 19112010{i-1}/A {Constants.ct_Prefix}{i-1}";
+                        }
+                        string script = "continue/-100 -100/farmer -1000 -1000 0" +
+                                "/ignoreEventTileOffset" +
+                                $"/addConversationTopic {Constants.ct_Prefix}{i} 2" +
+                                "/pause 50/end";
+                        dict.Data[key] = script;
+                    }
+                });
             }
         }
     }
