@@ -45,6 +45,8 @@ You will need the following dependencies:
 
 Yes: Stardew Valley Expanded (if you can tolerate clipping in the event)
 
+Yes: Stardew Valley Reimagined 3
+
 Dubious: mods that alter the Secret Woods entrance (I don't know of any)
 
 Most other things should be fine. This mod doesn't do a lot.
