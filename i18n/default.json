@@ -16,5 +16,21 @@
     "hint.3.Penny": "A sleeping giant that can't be awakened... it sounds like a fairy tale.$h#$b#Usually in those stories, you need a pure heart or something to break the spell.#$b#... But sometimes gold works!$h",
     "hint.3.Lewis": "Well, I don't think I can help with your sleeping creature trouble.#$b#But try asking the man in the tower. He's odd, but I bet he knows something.#$b#Maybe he'll tell you, if he trusts you.$s",
     "hint.1.HatMouseLacey": "Oh, the big sleeping thing? He's huge!$u#$b#He doesn't seem to notice anything around him. Good luck getting him to move!",
+
+    "wizard.0001.0": "Ah, @. What brings you here?",
+    "wizard.0001.1": "Wait. Don't tell me: I can sense it.#$b#You wish to know about the creature sleeping behind my tower, do you not?",
+    "wizard.0001.2": "A curious specimen, isn't he? As lazy and gluttonous as anyone could be.#$b#He wakes only to eat, and stops eating only to sleep.",
+    "wizard.0001.3": "Still, he seems a pleasant fellow. I've taken to calling him 'Kirby'.$1",
+    "wizard.0001.4": "*ahem* At any rate... I'm not surprised to hear he won't budge. But perhaps we can convince him.#$b#Follow me.",
+    "wizard.0001.4a": "*ahem* At any rate... I don't have much else to say about him. But I do have something that may interest you.#$b#Follow me.",
+    "wizard.0001.5": "Yes, I believe I have just the thing. It was a gift to me from an associate in a distant region.#$b#It has an irresistible effect on sleeping creatures. Surely our friend will respond to it.",
+    "wizard.0001.6": "Here. Take it.",
+    "wizard.0001.7": "I trust you can tell it is no ordinary instrument. A great power seems to stir within it.",
+    "wizard.0001.8": "You may borrow it for the time being. I do not require it for my work.#$b#But, it was a gift. I would like it back eventually.",
+    "wizard.0001.9": "Now, go. I have my own affairs to attend to.#$b#Farewell.",
+    "wizard.0001.10": "Samuel, you old coot. Looks like you were right.",
+    "wizard.0001.11": "I found a use for it after all.",
+    "wizard.0001.12": "Back again, eh? Any luck with our slumbering friend?",
+
     "EOF": ""
 }

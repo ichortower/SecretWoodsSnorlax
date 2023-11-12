@@ -6,6 +6,7 @@ using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Locations;
 using StardewValley.TerrainFeatures;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -389,12 +390,34 @@ namespace ichortower.SecretWoodsSnorlax
             }
 
             /*
-             * add the wizard events:
-             *   one for the main farmer, to get the flute
-             *   one for farmhands, telling them to send the main farmer
-             *   one for main farmers who already moved snorlax (old save)
+             * add the wizard event. actually three entries, since there's a
+             * fork and rejoin to change one line depending on if you have
+             * already moved the snorlax (only old saves should see that line).
              */
             else if (e.NameWithoutLocale.IsEquivalentTo("Data/Events/WizardHouse")) {
+                var snorlax = ModEntry.HELPER.ModContent.Load
+                        <Dictionary<string,string>>("assets/events.json");
+                foreach (var entry in snorlax) {
+                    string val = entry.Value.Replace("{{moved}}",
+                            Constants.mail_SnorlaxMoved);
+                    int haveIndex = -1;
+                    int start = 0;
+                    while ((haveIndex = val.IndexOf("{{i18n", start)) != -1) {
+                        int tail = val.IndexOf("}}", haveIndex+1);
+                        string subkey = val.Substring(haveIndex+7, tail-(haveIndex+7));
+                        string subval = ModEntry.HELPER.Translation.Get(subkey);
+                        val = val.Remove(haveIndex, tail+2-haveIndex)
+                                .Insert(haveIndex, subval);
+                        start += subval.Length;
+                    }
+                    snorlax[entry.Key] = val;
+                }
+                e.Edit(asset => {
+                    var dict = asset.AsDictionary<string, string>();
+                    foreach (var entry in snorlax) {
+                        dict.Data[entry.Key] = entry.Value;
+                    }
+                });
             }
 
             /* add the empty farm events that set the CTs when the hints mail
