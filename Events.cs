@@ -401,8 +401,13 @@ namespace ichortower.SecretWoodsSnorlax
              * already moved the snorlax (only old saves should see that line).
              */
             else if (e.NameWithoutLocale.IsEquivalentTo("Data/Events/WizardHouse")) {
+                string asset = "assets/events.json";
+                if (ModEntry.HELPER.ModRegistry.IsLoaded(
+                        "FlashShifter.StardewValleyExpandedCP")) {
+                    asset = "assets/events_sve.json";
+                }
                 var snorlax = ModEntry.HELPER.ModContent.Load
-                        <Dictionary<string,string>>("assets/events.json");
+                        <Dictionary<string,string>>(asset);
                 foreach (var entry in snorlax) {
                     string val = entry.Value.Replace("{{moved}}",
                             Constants.mail_SnorlaxMoved);
