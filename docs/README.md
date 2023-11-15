@@ -32,7 +32,6 @@ Only the main player can trigger the event (no farmhands).
 After you've moved Snorlax, he'll stick around. He'll just be a few tiles over,
 safely out of the way, so you can continue to hang out with him.
 
-
 ## Requirements
 
 You will need the following dependencies:
@@ -43,11 +42,13 @@ You will need the following dependencies:
 
 ## Compatibility
 
-Yes: Stardew Valley Expanded (if you can tolerate clipping in the event)
+Yes: Stardew Valley Expanded (now with fixed plot event!)
 
 Yes: Stardew Valley Reimagined 3
 
-Dubious: mods that alter the Secret Woods entrance (I don't know of any)
+Yes: Lunna Astray in Stardew Valley (no longer blocks entrance after moving)
+
+Dubious: mods that alter the Secret Woods entrance
 
 Most other things should be fine. This mod doesn't do a lot.
 
@@ -60,4 +61,4 @@ they aren't needed. You will still be able to trigger the event (the dialogue
 will change slightly).
 
 Similarly, it should be safe to delete this mod at any point, although there is
-a Json Assets item in it, so be wary of shuffling.
+a Json Assets item in it, so take your usual precautions to avoid a shuffle.

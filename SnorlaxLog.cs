@@ -15,7 +15,8 @@ namespace ichortower.SecretWoodsSnorlax
         public float yJumpVelocity = 0f;
         public float yJumpGravity = -0.5f;
         public int jumpTicks = -1;
-        public int jumpRepositionSpeed = 0;
+        public float xJumpMove = 0f;
+        public float yJumpMove = 0f;
 
         public SnorlaxLog(float x, float y)
             : base()
@@ -31,6 +32,11 @@ namespace ichortower.SecretWoodsSnorlax
             }
         }
 
+        public SnorlaxLog(Vector2 pos)
+            : this(pos.X, pos.Y)
+        {
+        }
+
         /*
          * The jump is firmcoded. This just sets the values, and draw and
          * tickUpdate actually handle it.
@@ -38,17 +44,21 @@ namespace ichortower.SecretWoodsSnorlax
         public void JumpAside()
         {
             this.parentSheetIndex.Value = 2;
-            this.yJumpVelocity = 16;
+            this.yJumpVelocity = 16f;
             this.jumpTicks = 0;
-            this.jumpRepositionSpeed = 2;
+            this.xJumpMove = Constants.vec_MovedPosition.X -
+                    Constants.vec_BlockingPosition.X;
+            this.yJumpMove = Constants.vec_MovedPosition.Y -
+                    Constants.vec_BlockingPosition.Y;
         }
 
         public void JumpInPlace()
         {
             this.parentSheetIndex.Value = 2;
-            this.yJumpVelocity = 8;
+            this.yJumpVelocity = 8f;
             this.jumpTicks = 0;
-            this.jumpRepositionSpeed = 0;
+            this.xJumpMove = 0f;
+            this.yJumpMove = 0f;
         }
 
         public bool HasMoved()
@@ -56,7 +66,7 @@ namespace ichortower.SecretWoodsSnorlax
             if (Game1.player.mailReceived.Contains(Constants.mail_SnorlaxMoved)) {
                 return true;
             }
-            return this.tile.Value.X > 1f;
+            return this.tile.Value == Constants.vec_MovedPosition;
         }
 
         public override void draw(SpriteBatch spriteBatch, Vector2 tileLocation)
@@ -67,8 +77,8 @@ namespace ichortower.SecretWoodsSnorlax
             Vector2 position = this.tile.Value * 64f;
             position.Y -= yJumpOffset;
             if (jumpTicks > 0) {
-                position.X += jumpRepositionSpeed * jumpTicks;
-                position.Y -= jumpRepositionSpeed * jumpTicks;
+                position.X += xJumpMove * jumpTicks;
+                position.Y += yJumpMove * jumpTicks;
             }
             spriteBatch.Draw(SnorlaxLog.SpriteSheet,
                     Game1.GlobalToLocal(Game1.viewport, position),
@@ -93,7 +103,7 @@ namespace ichortower.SecretWoodsSnorlax
             if (prevOffset > 0f && yJumpOffset == 0f) {
                 this.parentSheetIndex.Value = 0;
                 this.jumpTicks = -1;
-                this.tile.Value = new Vector2(3f, 4f);
+                this.tile.Value = Constants.vec_MovedPosition;
                 location.playSoundAt("clubSmash", this.tile.Value);
                 location.playSoundAt("treethud", this.tile.Value);
             }
