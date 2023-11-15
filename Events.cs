@@ -38,6 +38,12 @@ namespace ichortower.SecretWoodsSnorlax
                 JAApi.LoadAssets(path);
             }
 
+            /* change moved location if lunna is installed */
+            bool haveLunna = ModEntry.HELPER.ModRegistry.IsLoaded("Rafseazz.LunnaCP");
+            if (haveLunna) {
+                Constants.vec_MovedPosition = new Vector2(7f, 7f);
+            }
+
             /* Load the flute musics (sound effects).
              * They're short, but snarfing an ogg does take time */
             Thread t = new Thread((ThreadStart)delegate {
@@ -102,15 +108,15 @@ namespace ichortower.SecretWoodsSnorlax
              */
             Forest forest = (Forest)Game1.getLocationFromName("Forest");
             if (Game1.player.mailReceived.Contains(Constants.mail_SnorlaxMoved)) {
-                forest.log = new SnorlaxLog(3f, 4f);
+                forest.log = new SnorlaxLog(Constants.vec_MovedPosition);
                 return;
             }
             if (forest.log is null) {
-                forest.log = new SnorlaxLog(3f, 4f);
+                forest.log = new SnorlaxLog(Constants.vec_MovedPosition);
                 Game1.player.mailReceived.Add(Constants.mail_SnorlaxMoved);
             }
             else {
-                forest.log = new SnorlaxLog(1f, 6f);
+                forest.log = new SnorlaxLog(Constants.vec_BlockingPosition);
             }
 
             getFluteId();
@@ -130,7 +136,7 @@ namespace ichortower.SecretWoodsSnorlax
                 return;
             }
             if (forest.log != null && forest.log is SnorlaxLog) {
-                if (forest.log.tile.Value.X == 1f) {
+                if (forest.log.tile.Value == Constants.vec_BlockingPosition) {
                     forest.log = new ResourceClump(602, 2, 2, new Vector2(1f, 6f));
                 }
                 else { //if (forest.log.tile.Value.X == 3f)
