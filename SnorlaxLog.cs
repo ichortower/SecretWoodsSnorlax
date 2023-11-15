@@ -8,14 +8,14 @@ namespace ichortower.SecretWoodsSnorlax
 {
     internal class SnorlaxLog : StardewValley.TerrainFeatures.ResourceClump
     {
-        public static string SpriteSheetName = "Maps\\SecretWoodsSnorlax";
         public static Texture2D SpriteSheet = null!;
 
         public float yJumpOffset = 0f;
         public float yJumpVelocity = 0f;
         public float yJumpGravity = -0.5f;
+        public float xJumpMove = 0f;
+        public float yJumpMove = 0f;
         public int jumpTicks = -1;
-        public int jumpRepositionSpeed = 0;
 
         public SnorlaxLog(float x, float y)
             : base()
@@ -23,7 +23,7 @@ namespace ichortower.SecretWoodsSnorlax
             this.width.Value = 3;
             this.height.Value = 3;
             this.parentSheetIndex.Value = 0;
-            this.tile.Value = new Vector2(x, y);
+            this.Tile = new Vector2(x, y);
             this.health.Value = 160; // snorlax's base HP stat
             if (SnorlaxLog.SpriteSheet is null) {
                 SnorlaxLog.SpriteSheet = ModEntry.HELPER.ModContent
@@ -31,24 +31,34 @@ namespace ichortower.SecretWoodsSnorlax
             }
         }
 
-        /*
-         * The jump is firmcoded. This just sets the values, and draw and
-         * tickUpdate actually handle it.
-         */
+        public SnorlaxLog(Vector2 pos)
+            : this(pos.X, pos.Y)
+        {
+        }
+
         public void JumpAside()
         {
             this.parentSheetIndex.Value = 2;
-            this.yJumpVelocity = 16;
+            this.yJumpVelocity = 16f;
+            /*
+             * the move amounts are so simple because at velocity 16f, the
+             * jump takes exactly 64 frames to complete (quadratic formula).
+             * tile dist * 64 pixels / 64 frames
+             */
+            this.xJumpMove = Constants.vec_MovedLocation.X -
+                    Constants.vec_BlockingLocation.X;
+            this.yJumpMove = Constants.vec_MovedLocation.Y -
+                    Constants.vec_BlockingLocation.Y;
             this.jumpTicks = 0;
-            this.jumpRepositionSpeed = 2;
         }
 
         public void JumpInPlace()
         {
             this.parentSheetIndex.Value = 2;
-            this.yJumpVelocity = 8;
+            this.yJumpVelocity = 8f;
+            this.xJumpMove = 0f;
+            this.yJumpMove = 0f;
             this.jumpTicks = 0;
-            this.jumpRepositionSpeed = 0;
         }
 
         public bool HasMoved()
@@ -56,29 +66,28 @@ namespace ichortower.SecretWoodsSnorlax
             if (Game1.player.mailReceived.Contains(Constants.mail_SnorlaxMoved)) {
                 return true;
             }
-            return this.tile.Value.X > 1f;
+            return this.Tile == Constants.vec_MovedLocation;
         }
 
-        public override void draw(SpriteBatch spriteBatch, Vector2 tileLocation)
+        public override void draw(SpriteBatch spriteBatch)
         {
             Rectangle sourceRect = Game1.getSourceRectForStandardTileSheet(
                     SnorlaxLog.SpriteSheet, this.parentSheetIndex.Value,
                     this.width.Value * 16, this.height.Value * 16);
-            Vector2 position = this.tile.Value * 64f;
+            Vector2 position = this.Tile * 64f;
             position.Y -= yJumpOffset;
             if (jumpTicks > 0) {
-                position.X += jumpRepositionSpeed * jumpTicks;
-                position.Y -= jumpRepositionSpeed * jumpTicks;
+                position.X += xJumpMove * jumpTicks;
+                position.Y += yJumpMove * jumpTicks;
             }
             spriteBatch.Draw(SnorlaxLog.SpriteSheet,
                     Game1.GlobalToLocal(Game1.viewport, position),
                     sourceRect, Color.White, 0f, Vector2.Zero, 4f,
                     SpriteEffects.None,
-                    (this.tile.Y + 1f) * 64f / 10000f + this.tile.X / 100000f);
+                    (this.Tile.Y + 1f) * 64f / 10000f + this.Tile.X / 100000f);
         }
 
-        public override bool tickUpdate(GameTime time,
-                Vector2 tileLocation, GameLocation location)
+        public override bool tickUpdate(GameTime time)
         {
             if (jumpTicks >= 0) {
                 ++jumpTicks;
@@ -93,15 +102,15 @@ namespace ichortower.SecretWoodsSnorlax
             if (prevOffset > 0f && yJumpOffset == 0f) {
                 this.parentSheetIndex.Value = 0;
                 this.jumpTicks = -1;
-                this.tile.Value = new Vector2(3f, 4f);
-                location.playSoundAt("clubSmash", this.tile.Value);
-                location.playSoundAt("treethud", this.tile.Value);
+                this.Tile = Constants.vec_MovedLocation;
+                GameLocation location = this.Location;
+                location.playSound("clubSmash", this.Tile);
+                location.playSound("treethud", this.Tile);
             }
-            return base.tickUpdate(time, tileLocation, location);
+            return base.tickUpdate(time);
         }
 
-        public override bool performUseAction(Vector2 tileLocation,
-                GameLocation location)
+        public override bool performUseAction(Vector2 tileLocation)
         {
             if (!Game1.didPlayerJustRightClick(true)) {
                 Game1.haltAfterCheck = false;
@@ -115,22 +124,23 @@ namespace ichortower.SecretWoodsSnorlax
         }
 
         public override bool performToolAction(Tool t, int damage,
-                Vector2 tileLocation, GameLocation location)
+                Vector2 tileLocation)
         {
             if (t is null) {
                 return false;
             }
+            GameLocation location = this.Location;
             if (!HasMoved()) {
                 string key = $"tool.noEffect.{Game1.random.Next(0,4)}";
                 string str = ModEntry.HELPER.Translation.Get(key);
                 if (t is Axe) {
-                    location.playSound("woodyHit");
+                    location.playSound("woodyHit", this.Tile);
                     Game1.player.jitterStrength = 1f;
                     Game1.drawObjectDialogue(str);
                     enableHints();
                 }
                 else if (t is Pickaxe) {
-                    location.playSound("woodyHit");
+                    location.playSound("woodyHit", this.Tile);
                     Game1.player.jitterStrength = 1f;
                     Game1.drawObjectDialogue(str);
                     enableHints();
