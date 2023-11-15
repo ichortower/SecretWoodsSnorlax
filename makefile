@@ -1,4 +1,5 @@
-GAME_DIR=${HOME}/GOG Games/Stardew Valley/game
+# FIXME revert to GOG location after 1.6 release
+GAME_DIR=${HOME}/.local/share/Steam/steamapps/common/Stardew Valley
 MOD_DIR=${GAME_DIR}/Mods/SecretWoodsSnorlax
 
 install: smapi
