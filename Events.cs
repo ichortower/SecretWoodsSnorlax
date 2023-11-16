@@ -34,7 +34,7 @@ namespace ichortower.SecretWoodsSnorlax
         public static void giveKeyMethod(Event @evt, string[] args,
                 EventContext context)
         {
-            Item i = ItemRegistry.Create("ichortower.SecretWoodsSnorlax_StrangeFlute", 1, 0);
+            Item i = ItemRegistry.Create(Constants.id_Flute, 1, 0);
             if (i != null) {
                 i.specialItem = true;
                 @evt.farmer.addItemByMenuIfNecessary(i);
@@ -85,6 +85,18 @@ namespace ichortower.SecretWoodsSnorlax
             }
             forest.resourceClumps.Add(boi);
             FluteHeardToday = false;
+
+            /* convert the old event id to the new one.
+             * if that's needed, also give a flute, since the old JA one will
+             * become an error item */
+            if (Game1.player.eventsSeen.Remove(Constants.id_EventOld)) {
+                Game1.player.eventsSeen.Add(Constants.id_Event);
+                Item i = ItemRegistry.Create(Constants.id_Flute, 1, 0);
+                if (i != null) {
+                    i.specialItem = true;
+                    Game1.player.addItemByMenuIfNecessary(i);
+                }
+            }
         }
 
         /*

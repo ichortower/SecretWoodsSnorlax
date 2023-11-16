@@ -8,6 +8,8 @@ namespace ichortower.SecretWoodsSnorlax
         public static string id_Flute = $"{id_Mod}_StrangeFlute";
         public static string id_FluteCue = $"{id_Mod}_flutemelody";
         public static string id_FluteCueShort = $"{id_Mod}_fluteshort";
+        public static string id_Event = $"{id_Mod}_e1";
+        public static string id_EventOld = "191120001";
         public static string ct_Prefix = "SecretWoodsSnorlax_Hint";
         public static string mail_SnorlaxHints = "SecretWoodsSnorlax_HintsActive";
         public static string mail_SnorlaxMoved = "SecretWoodsSnorlax_Moved";
