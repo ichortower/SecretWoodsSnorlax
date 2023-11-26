@@ -188,7 +188,8 @@ namespace ichortower.SecretWoodsSnorlax
                     Game1.player.getTileY() <= 10) {
                 // suppressing input prevents inspecting snorlax while
                 // starting these cutscenes
-                if (!Game1.player.mailReceived.Contains(Constants.mail_SnorlaxMoved)) {
+                var snorlax = (Game1.player.currentLocation as Forest).log as SnorlaxLog;
+                if (snorlax != null && !snorlax.HasMoved()) {
                     ModEntry.HELPER.Input.Suppress(button);
                     WakeUpCutscene();
                     return;
@@ -321,7 +322,7 @@ namespace ichortower.SecretWoodsSnorlax
             int msPerBeat = Constants.msPerBeat;
 
             var snorlax = (Game1.player.currentLocation as Forest).log as SnorlaxLog;
-            var soundloc = new Vector2(4f, 5f);
+            var soundloc = Constants.vec_MovedPosition + new Vector2(1f, 1f);
 
             Game1.player.FarmerSprite.animateOnce(new FarmerSprite.AnimationFrame[14]{
                 new FarmerSprite.AnimationFrame(16, 2*beforeSongPause/3, false, false),
