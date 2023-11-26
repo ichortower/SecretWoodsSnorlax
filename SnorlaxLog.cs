@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Netcode;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Tools;
 using System;
@@ -18,6 +20,9 @@ namespace ichortower.SecretWoodsSnorlax
         public float xJumpMove = 0f;
         public float yJumpMove = 0f;
 
+        public NetEvent1Field<int, NetInt> mpJumpEvent =
+                new NetEvent1Field<int, NetInt>();
+
         public SnorlaxLog(float x, float y)
             : base()
         {
@@ -30,6 +35,8 @@ namespace ichortower.SecretWoodsSnorlax
                 SnorlaxLog.SpriteSheet = ModEntry.HELPER.ModContent
                         .Load<Texture2D>("assets/map_snorlax.png");
             }
+            base.NetFields.AddField(this.mpJumpEvent);
+            this.mpJumpEvent.onEvent += performJump;
         }
 
         public SnorlaxLog(Vector2 pos)
@@ -42,28 +49,40 @@ namespace ichortower.SecretWoodsSnorlax
         {
         }
 
-        /*
-         * The jump is firmcoded. This just sets the values, and draw and
-         * tickUpdate actually handle it.
-         */
+        public void performJump(int which)
+        {
+            if (which == 1) {
+                this.parentSheetIndex.Value = 2;
+                this.yJumpVelocity = 16f;
+                this.jumpTicks = 0;
+                this.xJumpMove = Constants.vec_MovedPosition.X -
+                        Constants.vec_BlockingPosition.X;
+                this.yJumpMove = Constants.vec_MovedPosition.Y -
+                        Constants.vec_BlockingPosition.Y;
+            }
+            else if (which == 2) {
+                this.parentSheetIndex.Value = 2;
+                this.yJumpVelocity = 8f;
+                this.jumpTicks = 0;
+                this.xJumpMove = 0f;
+                this.yJumpMove = 0f;
+            }
+        }
+
+        public void broadcastJump(int which)
+        {
+            this.mpJumpEvent.Fire(which);
+            this.mpJumpEvent.Poll();
+        }
+
         public void JumpAside()
         {
-            this.parentSheetIndex.Value = 2;
-            this.yJumpVelocity = 16f;
-            this.jumpTicks = 0;
-            this.xJumpMove = Constants.vec_MovedPosition.X -
-                    Constants.vec_BlockingPosition.X;
-            this.yJumpMove = Constants.vec_MovedPosition.Y -
-                    Constants.vec_BlockingPosition.Y;
+            broadcastJump(1);
         }
 
         public void JumpInPlace()
         {
-            this.parentSheetIndex.Value = 2;
-            this.yJumpVelocity = 8f;
-            this.jumpTicks = 0;
-            this.xJumpMove = 0f;
-            this.yJumpMove = 0f;
+            broadcastJump(2);
         }
 
         public bool HasMoved()
@@ -95,6 +114,7 @@ namespace ichortower.SecretWoodsSnorlax
         public override bool tickUpdate(GameTime time,
                 Vector2 tileLocation, GameLocation location)
         {
+            mpJumpEvent.Poll();
             if (jumpTicks >= 0) {
                 ++jumpTicks;
             }
