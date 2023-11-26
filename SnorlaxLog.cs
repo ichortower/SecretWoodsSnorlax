@@ -37,6 +37,11 @@ namespace ichortower.SecretWoodsSnorlax
         {
         }
 
+        public SnorlaxLog()
+            : this(Constants.vec_BlockingPosition)
+        {
+        }
+
         /*
          * The jump is firmcoded. This just sets the values, and draw and
          * tickUpdate actually handle it.
