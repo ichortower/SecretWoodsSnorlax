@@ -47,6 +47,9 @@ Yes: Stardew Valley Reimagined 3
 
 Yes: Lunna Astray in Stardew Valley (no longer blocks entrance after moving)
 
+Yes: Multiplayer (farmhands no longer crash when entering the forest. some, but
+not all, animations are transmitted to other players)
+
 Dubious: mods that alter the Secret Woods entrance
 
 Most other things should be fine. This mod doesn't do a lot.
