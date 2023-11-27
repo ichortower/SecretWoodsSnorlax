@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Netcode;
 using StardewValley;
 using StardewValley.Tools;
 using System;
@@ -17,6 +18,9 @@ namespace ichortower.SecretWoodsSnorlax
         public float yJumpMove = 0f;
         public int jumpTicks = -1;
 
+        public NetEvent1Field<int, NetInt> mpJumpEvent =
+                new NetEvent1Field<int, NetInt>();
+
         public SnorlaxLog(float x, float y)
             : base()
         {
@@ -29,6 +33,8 @@ namespace ichortower.SecretWoodsSnorlax
                 SnorlaxLog.SpriteSheet = ModEntry.HELPER.ModContent
                         .Load<Texture2D>("assets/map_snorlax.png");
             }
+            base.NetFields.AddField(this.mpJumpEvent);
+            this.mpJumpEvent.onEvent += performJump;
         }
 
         public SnorlaxLog(Vector2 pos)
@@ -36,29 +42,50 @@ namespace ichortower.SecretWoodsSnorlax
         {
         }
 
+        public SnorlaxLog()
+            : this(Constants.vec_BlockingPosition)
+        {
+        }
+
+        public void performJump(int which)
+        {
+            if (which == 1) {
+                this.parentSheetIndex.Value = 2;
+                this.yJumpVelocity = 16f;
+                /*
+                 * the move amounts are so simple because at velocity 16f, the
+                 * jump takes exactly 64 frames to complete (quadratic formula).
+                 * tile dist * 64 pixels / 64 frames
+                 */
+                this.xJumpMove = Constants.vec_MovedPosition.X -
+                        Constants.vec_BlockingPosition.X;
+                this.yJumpMove = Constants.vec_MovedPosition.Y -
+                        Constants.vec_BlockingPosition.Y;
+                this.jumpTicks = 0;
+            }
+            else if (which == 2) {
+                this.parentSheetIndex.Value = 2;
+                this.yJumpVelocity = 8f;
+                this.xJumpMove = 0f;
+                this.yJumpMove = 0f;
+                this.jumpTicks = 0;
+            }
+        }
+
+        public void broadcastJump(int which)
+        {
+            this.mpJumpEvent.Fire(which);
+            this.mpJumpEvent.Poll();
+        }
+
         public void JumpAside()
         {
-            this.parentSheetIndex.Value = 2;
-            this.yJumpVelocity = 16f;
-            /*
-             * the move amounts are so simple because at velocity 16f, the
-             * jump takes exactly 64 frames to complete (quadratic formula).
-             * tile dist * 64 pixels / 64 frames
-             */
-            this.xJumpMove = Constants.vec_MovedPosition.X -
-                    Constants.vec_BlockingPosition.X;
-            this.yJumpMove = Constants.vec_MovedPosition.Y -
-                    Constants.vec_BlockingPosition.Y;
-            this.jumpTicks = 0;
+            broadcastJump(1);
         }
 
         public void JumpInPlace()
         {
-            this.parentSheetIndex.Value = 2;
-            this.yJumpVelocity = 8f;
-            this.xJumpMove = 0f;
-            this.yJumpMove = 0f;
-            this.jumpTicks = 0;
+            broadcastJump(2);
         }
 
         public bool HasMoved()
@@ -89,6 +116,7 @@ namespace ichortower.SecretWoodsSnorlax
 
         public override bool tickUpdate(GameTime time)
         {
+            mpJumpEvent.Poll();
             if (jumpTicks >= 0) {
                 ++jumpTicks;
             }

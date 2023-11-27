@@ -160,12 +160,13 @@ namespace ichortower.SecretWoodsSnorlax
                     Game1.player.Tile.Y <= 10) {
                 // suppressing input prevents inspecting snorlax while
                 // starting these cutscenes
-                if (!Game1.player.mailReceived.Contains(Constants.mail_SnorlaxMoved)) {
+                var snorlax = getBigBoi(Game1.player.currentLocation);
+                if (snorlax != null && !snorlax.HasMoved()) {
                     ModEntry.HELPER.Input.Suppress(button);
                     WakeUpCutscene();
                     return;
                 }
-                else if (!FluteHeardToday) {
+                else if (snorlax != null && !FluteHeardToday) {
                     ModEntry.HELPER.Input.Suppress(button);
                     RelistenCutscene();
                     return;
