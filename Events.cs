@@ -4,11 +4,13 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Delegates;
 using StardewValley.GameData;
 using StardewValley.GameData.Objects;
 using StardewValley.Locations;
 using StardewValley.Pathfinding;
 using StardewValley.TerrainFeatures;
+using StardewValley.Triggers;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -28,19 +30,32 @@ namespace ichortower.SecretWoodsSnorlax
                 Constants.vec_MovedPosition = new Vector2(7f, 7f);
             }
 
-            Event.RegisterCustomCommand("SWS_giveKey", giveKeyMethod);
+            TriggerActionManager.RegisterAction(
+                    $"{Constants.id_Mod}_Action_GiveKey", giveKeyMethod);
         }
 
-        public static void giveKeyMethod(Event @evt, string[] args,
-                EventContext context)
+        public static bool giveKeyMethod(string[] args,
+                TriggerActionContext context,
+                out string error)
         {
-            Item i = ItemRegistry.Create(Constants.id_Flute, 1, 0);
-            if (i != null) {
-                i.specialItem = true;
-                @evt.farmer.addItemByMenuIfNecessary(i);
-                @evt.farmer.holdUpItemThenMessage(i);
+            if (!Game1.IsMasterGame) {
+                error = $"Permitted only for host player.";
+                return false;
             }
-            @evt.CurrentCommand++;
+            Object o = ItemRegistry.Create<Object>(Constants.id_Flute, 1, 0);
+            if (o is null) {
+                error = $"Couldn't create {Constants.id_Flute}!";
+                return false;
+            }
+            o.specialItem = true;
+            o.questItem.Value = true;
+            Game1.player.addItemByMenuIfNecessary(o);
+            if (Game1.eventUp && Game1.CurrentEvent != null &&
+                    !Game1.CurrentEvent.skipped) {
+                Game1.player.holdUpItemThenMessage(o);
+            }
+            error = null;
+            return true;
         }
 
         public static ResourceClump getBlockingLog(GameLocation loc)
@@ -91,11 +106,9 @@ namespace ichortower.SecretWoodsSnorlax
              * become an error item */
             if (Game1.player.eventsSeen.Remove(Constants.id_EventOld)) {
                 Game1.player.eventsSeen.Add(Constants.id_Event);
-                Item i = ItemRegistry.Create(Constants.id_Flute, 1, 0);
-                if (i != null) {
-                    i.specialItem = true;
-                    Game1.player.addItemByMenuIfNecessary(i);
-                }
+                giveKeyMethod(new string[]{},
+                        new TriggerActionContext("Manual", new object[]{}, null),
+                        out string err);
             }
         }
 
