@@ -90,7 +90,7 @@ namespace ichortower.SecretWoodsSnorlax
 
         public bool HasMoved()
         {
-            if (Game1.player.mailReceived.Contains(Constants.mail_SnorlaxMoved)) {
+            if (Game1.player.mailReceived.Contains(Constants.mail_Moved)) {
                 return true;
             }
             return this.Tile == Constants.vec_MovedPosition;
@@ -182,7 +182,7 @@ namespace ichortower.SecretWoodsSnorlax
             // no letter, send to everyone. all players will get their own
             // CTs, so they can work together getting hints.
             // (only the main player can get the flute event)
-            Game1.addMailForTomorrow(Constants.mail_SnorlaxHints, true, true);
+            Game1.addMailForTomorrow($"{Constants.mail_Hints}Active", true, true);
         }
     }
 

@@ -80,18 +80,15 @@ namespace ichortower.SecretWoodsSnorlax
         }
 
 
-        /*
-         * On a new day, spawn the snorlax and clear the flag for having
-         * heard the flute today.
-         * Spawn location depends on the existence of the vanilla log.
-         */
         public static void OnDayStarted(object sender, DayStartedEventArgs e)
         {
+            // determine where to spawn Snorlax based on whether the vanilla
+            // log is still around (we restore it before saving).
             GameLocation forest = Game1.getLocationFromName("Forest");
             ResourceClump log = getBlockingLog(forest);
             SnorlaxLog boi = null;
             if (log is null) {
-                Game1.player.mailReceived.Add(Constants.mail_SnorlaxMoved);
+                Game1.player.mailReceived.Add(Constants.mail_Moved);
                 boi = new SnorlaxLog(Constants.vec_MovedPosition);
             }
             else {
@@ -99,16 +96,38 @@ namespace ichortower.SecretWoodsSnorlax
                 boi = new SnorlaxLog(Constants.vec_BlockingPosition);
             }
             forest.resourceClumps.Add(boi);
+
+            // allow a new flute cutscene today
             FluteHeardToday = false;
 
-            /* convert the old event id to the new one.
-             * if that's needed, also give a flute, since the old JA one will
-             * become an error item */
+            // convert the old event id to the new one.
+            // if that's needed, also give a flute, since the old JA one will
+            // become an error item
             if (Game1.player.eventsSeen.Remove(Constants.id_EventOld)) {
                 Game1.player.eventsSeen.Add(Constants.id_Event);
                 giveKeyMethod(new string[]{},
                         new TriggerActionContext("Manual", new object[]{}, null),
                         out string err);
+            }
+
+            // set CTs and corresponding mail flags if the hint system is
+            // active
+            if (Game1.player.mailReceived.Contains($"{Constants.mail_Hints}Active")) {
+                if (!Game1.player.mailReceived.Contains($"{Constants.mail_Hints}1")) {
+                    Game1.player.activeDialogueEvents.TryAdd($"{Constants.ct_Prefix}1", 2);
+                    Game1.player.mailReceived.Add($"{Constants.mail_Hints}1");
+                }
+                else if (!Game1.player.mailReceived.Contains($"{Constants.mail_Hints}2") &&
+                        !Game1.player.activeDialogueEvents.ContainsKey($"{Constants.ct_Prefix}1")) {
+                    Game1.player.activeDialogueEvents.TryAdd($"{Constants.ct_Prefix}2", 2);
+                    Game1.player.mailReceived.Add($"{Constants.mail_Hints}2");
+                }
+                else if (!Game1.player.mailReceived.Contains($"{Constants.mail_Hints}3") &&
+                        !Game1.player.activeDialogueEvents.ContainsKey($"{Constants.ct_Prefix}1") &&
+                        !Game1.player.activeDialogueEvents.ContainsKey($"{Constants.ct_Prefix}2")) {
+                    Game1.player.activeDialogueEvents.TryAdd($"{Constants.ct_Prefix}3", 2);
+                    Game1.player.mailReceived.Add($"{Constants.mail_Hints}3");
+                }
             }
         }
 
@@ -269,7 +288,7 @@ namespace ichortower.SecretWoodsSnorlax
 
             DelayedAction.functionAfterDelay(delegate {
                 Game1.player.currentLocation.playSound("secret1", endloc);
-                Game1.player.mailReceived.Add(Constants.mail_SnorlaxMoved);
+                Game1.player.mailReceived.Add(Constants.mail_Moved);
                 FluteHeardToday = true;
             }, tally);
             tally += 2000;
@@ -445,7 +464,7 @@ namespace ichortower.SecretWoodsSnorlax
                         <Dictionary<string,string>>(asset);
                 foreach (var entry in snorlax) {
                     string val = entry.Value.Replace("{{moved}}",
-                            Constants.mail_SnorlaxMoved);
+                            Constants.mail_Moved);
                     int haveIndex = -1;
                     int start = 0;
                     while ((haveIndex = val.IndexOf("{{i18n", start)) != -1) {
@@ -462,25 +481,6 @@ namespace ichortower.SecretWoodsSnorlax
                     var dict = asset.AsDictionary<string, string>();
                     foreach (var entry in snorlax) {
                         dict.Data[entry.Key] = entry.Value;
-                    }
-                });
-            }
-
-            /* add the empty farm events that set the CTs when the hints mail
-             * is active */
-            else if (e.NameWithoutLocale.IsEquivalentTo("Data/Events/Farm")) {
-                e.Edit(asset => {
-                    var dict = asset.AsDictionary<string, string>();
-                    for (int i = 1; i <= 3; ++i) {
-                        string key = $"19112010{i}/n {Constants.mail_SnorlaxHints}";
-                        if (i > 1) {
-                            key += $"/e 19112010{i-1}/A {Constants.ct_Prefix}{i-1}";
-                        }
-                        string script = "continue/-100 -100/farmer -1000 -1000 0" +
-                                "/ignoreEventTileOffset" +
-                                $"/addConversationTopic {Constants.ct_Prefix}{i} 2" +
-                                "/pause 50/end";
-                        dict.Data[key] = script;
                     }
                 });
             }
