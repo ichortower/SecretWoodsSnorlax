@@ -3,6 +3,8 @@
         "WizardSong/
         -1000 -1000/
         farmer 8 27 0 Wizard 10 15 2/
+        setSkipActions ichortower.SecretWoodsSnorlax_Action_GiveKey/
+        skippable/
         showFrame Wizard 18/
         viewport 6 18 true/
         pause 1500/
@@ -46,7 +48,8 @@
         pause 600/
         speak Wizard \"{{i18n:wizard.0001.6}}\"/
         pause 200/
-        SWS_giveKey/
+        setSkipActions \"\"/
+        action ichortower.SecretWoodsSnorlax_Action_GiveKey/
         pause 4000/
         faceDirection farmer 1/
         speak Wizard \"{{i18n:wizard.0001.7}}\"/
