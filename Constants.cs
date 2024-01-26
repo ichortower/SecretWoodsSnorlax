@@ -10,8 +10,13 @@ namespace ichortower.SecretWoodsSnorlax
         public static string id_FluteCueShort = $"{id_Mod}_fluteshort";
         public static string id_Event = $"{id_Mod}_e1";
         public static string id_EventOld = "191120001";
+        // this one is missing the final digit (1-3) on purpose
+        public static string id_OldNullEvent = "19112010";
+        public static string ct_OldPrefix = "SecretWoodsSnorlax_Hint";
         public static string ct_Prefix = $"{id_Mod}_CT";
+        public static string mail_OldHints = "SecretWoodsSnorlax_HintsActive";
         public static string mail_Hints = $"{id_Mod}_Mail_Hints";
+        public static string mail_OldMoved = "SecretWoodsSnorlax_Moved";
         public static string mail_Moved = $"{id_Mod}_Mail_Moved";
         public static Vector2 vec_BlockingPosition = new Vector2(1f, 6f);
         /* not actually constant; is changed if Lunna is installed */

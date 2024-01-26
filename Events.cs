@@ -100,15 +100,8 @@ namespace ichortower.SecretWoodsSnorlax
             // allow a new flute cutscene today
             FluteHeardToday = false;
 
-            // convert the old event id to the new one.
-            // if that's needed, also give a flute, since the old JA one will
-            // become an error item
-            if (Game1.player.eventsSeen.Remove(Constants.id_EventOld)) {
-                Game1.player.eventsSeen.Add(Constants.id_Event);
-                giveKeyMethod(new string[]{},
-                        new TriggerActionContext("Manual", new object[]{}, null),
-                        out string err);
-            }
+            // migrate 1.5 things to 1.6.
+            Migrate1_5Data();
 
             // set CTs and corresponding mail flags if the hint system is
             // active
@@ -128,6 +121,47 @@ namespace ichortower.SecretWoodsSnorlax
                     Game1.player.activeDialogueEvents.TryAdd($"{Constants.ct_Prefix}3", 2);
                     Game1.player.mailReceived.Add($"{Constants.mail_Hints}3");
                 }
+            }
+        }
+
+        public static void Migrate1_5Data()
+        {
+            // having seen the plot event is also the trigger to give a new
+            // flute, since the old one will become an error item
+            if (Game1.player.eventsSeen.Remove(Constants.id_EventOld)) {
+                Game1.player.eventsSeen.Add(Constants.id_Event);
+                giveKeyMethod(new string[]{},
+                        new TriggerActionContext("Manual", new object[]{}, null),
+                        out string err);
+            }
+            // convert old mail flags
+            if (Game1.player.mailReceived.Remove(Constants.mail_OldMoved)) {
+                Game1.player.mailReceived.Add(Constants.mail_Moved);
+            }
+            if (Game1.player.mailReceived.Remove(Constants.mail_OldHints)) {
+                Game1.player.mailReceived.Add($"{Constants.mail_Hints}Active");
+            }
+            // the null farm events are now controlled by mail flags
+            for (int i = 1; i <= 3; ++i) {
+                if (Game1.player.eventsSeen.Remove($"{Constants.id_OldNullEvent}{i}")) {
+                    Game1.player.mailReceived.Add($"{Constants.mail_Hints}{i}");
+                }
+            }
+            // the CTs have different ids as well
+            for (int i = 1; i <= 3; ++i) {
+                var key = $"{Constants.ct_OldPrefix}{i}";
+                if (Game1.player.activeDialogueEvents.ContainsKey(key)) {
+                    Game1.player.activeDialogueEvents[$"{Constants.ct_Prefix}{i}"] =
+                            Game1.player.activeDialogueEvents[key];
+                    Game1.player.activeDialogueEvents.Remove(key);
+                }
+                // convert mail flags for NPCs who have responded to the CT
+                Utility.ForEachVillager(delegate(NPC npc) {
+                    if (Game1.player.mailReceived.Remove($"{npc.Name}_{key}")) {
+                        Game1.player.mailReceived.Add($"{npc.Name}_{Constants.ct_Prefix}{i}");
+                    }
+                    return true;
+                });
             }
         }
 
