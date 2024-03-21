@@ -36,8 +36,8 @@ safely out of the way, so you can continue to hang out with him.
 
 You will need the following dependencies:
 
-* Stardew Valley 1.6.0-alpha or newer
-* SMAPI 4.0.0-alpha or newer
+* Stardew Valley 1.6
+* SMAPI 4.0.0+
 
 ## Compatibility
 
